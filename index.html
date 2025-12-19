@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pré-qualification – Téléphones Payables Mensuellement</title>
+  <!-- Tailwind CSS via CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 min-h-screen flex flex-col items-center">
+  <main class="w-full max-w-2xl p-6">
+    <h1 class="text-2xl font-bold text-center mb-6">Pré-qualification pour votre téléphone</h1>
+    <div id="stepper" class="flex items-center justify-between mb-8">
+      <!-- Step indicators will be injected here -->
+    </div>
+    <form id="prequalForm" class="space-y-4">
+      <!-- Step content will be injected here -->
+    </form>
+    <div class="mt-4 flex justify-between">
+      <button id="prevBtn" type="button" class="hidden px-4 py-2 rounded bg-gray-300 text-gray-700">Précédent</button>
+      <button id="nextBtn" type="button" class="px-4 py-2 rounded bg-blue-600 text-white">Suivant</button>
+    </div>
+  </main>
+  <script>
+    // Form state
+    const state = {
+      fullName: '',
+      phoneNumber: '',
+      email: '',
+      instagram: '',
+      country: 'Côte d’Ivoire',
+      city: '',
+      device: '',
+      priceRange: '',
+      downPayment: '',
+      incomeBand: '',
+      employment: '',
+      hasBankAccount: '',
+      usesMobileMoney: '',
+      contactConsent: false,
+      dataConsent: false,
+    };
+
+    // Step definitions
+    const steps = [
+      { name: 'Vos coordonnées', render: renderStep1 },
+      { name: 'Votre localisation', render: renderStep2 },
+      { name: 'Préférences appareil', render: renderStep3 },
+      { name: 'Revenus et apport', render: renderStep4 },
+      { name: 'Utilisation bancaire', render: renderStep5 },
+      { name: 'Consentements', render: renderStep6 },
+      { name: 'Terminé', render: renderFinish },
+    ];
+
+    let currentStep = 0;
+
+    // Initial render
+    renderStepper();
+    renderCurrentStep();
+
+    // Event handlers
+    document.getElementById('nextBtn').addEventListener('click', handleNext);
+    document.getElementById('prevBtn').addEventListener('click', handlePrev);
+
+    function renderStepper() {
+      const stepper = document.getElementById('stepper');
+      stepper.innerHTML = '';
+      steps.forEach((step, idx) => {
+        const indicator = document.createElement('div');
+        indicator.className = 'flex-1 text-center';
+        indicator.innerHTML = `
+          <div class="flex items-center justify-center mb-1">
+            <div class="w-6 h-6 rounded-full ${idx <= currentStep ? 'bg-blue-600 text-white' : 'bg-gray-300 text-gray-600'} flex items-center justify-center">${idx + 1}</div>
+          </div>
+          <div class="text-xs ${idx <= currentStep ? 'font-semibold text-blue-600' : 'text-gray-500'}">${step.name}</div>
+        `;
+        stepper.appendChild(indicator);
+        if (idx < steps.length - 1) {
+          const divider = document.createElement('div');
+          divider.className = `flex-1 h-px ${idx < currentStep ? 'bg-blue-600' : 'bg-gray-300'}`;
+          stepper.appendChild(divider);
+        }
+      });
+    }
+
+    function renderCurrentStep() {
+      const form = document.getElementById('prequalForm');
+      form.innerHTML = '';
+      // Render current step content
+      steps[currentStep].render(form);
+      // Toggle buttons
+      document.getElementById('prevBtn').style.display = currentStep === 0 ? 'none' : 'inline-block';
+      document.getElementById('nextBtn').textContent = currentStep === steps.length - 1 ? 'Terminer' : 'Suivant';
+    }
+
+    function handleNext() {
+      // Validate before moving forward if needed
+      if (currentStep < steps.length - 1) {
+        currentStep++;
+        renderStepper();
+        renderCurrentStep();
+      } else {
+        // Submit: show summary or send data
+        alert('Merci ! Votre demande de pré-qualification a été soumise.');
+      }
+    }
+
+    function handlePrev() {
+      if (currentStep > 0) {
+        currentStep--;
+        renderStepper();
+        renderCurrentStep();
+      }
+    }
+
+    function renderStep1(form) {
+      form.innerHTML = `
+        <div>
+          <label class="block text-sm font-medium mb-1">Nom complet</label>
+          <input type="text" id="fullName" class="w-full border rounded px-3 py-2" value="${state.fullName}" required>
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1">Numéro de téléphone</label>
+          <input type="tel" id="phoneNumber" class="w-full border rounded px-3 py-2" value="${state.phoneNumber}" required>
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1">Adresse email</label>
+          <input type="email" id="email" class="w-full border rounded px-3 py-2" value="${state.email}" required>
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1">Pseudo Instagram (facultatif)</label>
+          <input type="text" id="instagram" class="w-full border rounded px-3 py-2" value="${state.instagram}">
+        </div>
+      `;
+      // Save inputs on blur/change
+      form.querySelectorAll('input').forEach((input) => {
+        input.addEventListener('input', () => {
+          state[input.id] = input.type === 'checkbox' ? input.checked : input.value;
+        });
+      });
+    }
+
+    function renderStep2(form) {
+      form.innerHTML = `
+        <div>
+          <label class="block text-sm font-medium mb-1">Pays</label>
+          <input type="text" id="country" class="w-full border rounded px-3 py-2" value="${state.country}" disabled>
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1">Ville</label>
+          <input type="text" id="city" class="w-full border rounded px-3 py-2" value="${state.city}" required>
+        </div>
+      `;
+      form.querySelectorAll('input').forEach((input) => {
+        input.addEventListener('input', () => {
+          state[input.id] = input.type === 'checkbox' ? input.checked : input.value;
+        });
+      });
+    }
+
+    function renderStep3(form) {
+      form.innerHTML = `
+        <div>
+          <label class="block text-sm font-medium mb-1">Quel type d'appareil voulez-vous ?</label>
+          <select id="device" class="w-full border rounded px-3 py-2">
+            <option value="">Sélectionnez…</option>
+            <option value="Smartphone Android">Smartphone Android</option>
+            <option value="iPhone">iPhone</option>
+            <option value="Tablette">Tablette</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1">Fourchette de prix souhaitée (en CFA)</label>
+          <select id="priceRange" class="w-full border rounded px-3 py-2">
+            <option value="">Sélectionnez…</option>
+            <option value="<100 000">Moins de 100&nbsp;000</option>
+            <option value="100 000–200 000">100&nbsp;000 – 200&nbsp;000</option>
+            <option value=">200 000">Plus de 200&nbsp;000</option>
+          </select>
+        </div>
+      `;
+      form.querySelectorAll('select').forEach((select) => {
+        select.addEventListener('change', () => {
+          state[select.id] = select.value;
+        });
+      });
+    }
+
+    function renderStep4(form) {
+      form.innerHTML = `
+        <div>
+          <label class="block text-sm font-medium mb-1">Êtes-vous prêt(e) à verser un acompte ?</label>
+          <select id="downPayment" class="w-full border rounded px-3 py-2">
+            <option value="">Sélectionnez…</option>
+            <option value="Oui">Oui</option>
+            <option value="Non">Non</option>
+            <option value="Pas sûr(e)">Pas sûr(e)</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1">Votre revenu mensuel (approx.)</label>
+          <select id="incomeBand" class="w-full border rounded px-3 py-2">
+            <option value="">Sélectionnez…</option>
+            <option value="<100 000">Moins de 100&nbsp;000</option>
+            <option value="100 000–300 000">100&nbsp;000 – 300&nbsp;000</option>
+            <option value=">300 000">Plus de 300&nbsp;000</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1">Statut d'emploi</label>
+          <select id="employment" class="w-full border rounded px-3 py-2">
+            <option value="">Sélectionnez…</option>
+            <option value="Employé(e)">Employé(e)</option>
+            <option value="Travailleur indépendant">Travailleur indépendant</option>
+            <option value="Étudiant(e)">Étudiant(e)</option>
+            <option value="Autre">Autre</option>
+          </select>
+        </div>
+      `;
+      form.querySelectorAll('select').forEach((select) => {
+        select.addEventListener('change', () => {
+          state[select.id] = select.value;
+        });
+      });
+    }
+
+    function renderStep5(form) {
+      form.innerHTML = `
+        <div>
+          <label class="block text-sm font-medium mb-1">Avez-vous un compte bancaire actif ?</label>
+          <select id="hasBankAccount" class="w-full border rounded px-3 py-2">
+            <option value="">Sélectionnez…</option>
+            <option value="Oui">Oui</option>
+            <option value="Non">Non</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm font-medium mb-1">Utilisez-vous régulièrement le Mobile Money ?</label>
+          <select id="usesMobileMoney" class="w-full border rounded px-3 py-2">
+            <option value="">Sélectionnez…</option>
+            <option value="Oui">Oui</option>
+            <option value="Non">Non</option>
+          </select>
+        </div>
+      `;
+      form.querySelectorAll('select').forEach((select) => {
+        select.addEventListener('change', () => {
+          state[select.id] = select.value;
+        });
+      });
+    }
+
+    function renderStep6(form) {
+      form.innerHTML = `
+        <div class="mb-2">
+          <label class="inline-flex items-center">
+            <input type="checkbox" id="contactConsent" class="mr-2" ${state.contactConsent ? 'checked' : ''}>
+            J'accepte d'être contacté(e) pour un suivi de ma demande.
+          </label>
+        </div>
+        <div class="mb-2">
+          <label class="inline-flex items-center">
+            <input type="checkbox" id="dataConsent" class="mr-2" ${state.dataConsent ? 'checked' : ''}>
+            J'accepte l'utilisation de mes données conformément à la politique de confidentialité.
+          </label>
+        </div>
+        <p class="text-sm text-gray-600">Cette pré‑qualification n'est pas une offre de crédit. Une évaluation complète sera effectuée ultérieurement par nos partenaires bancaires.</p>
+      `;
+      form.querySelectorAll('input[type="checkbox"]').forEach((checkbox) => {
+        checkbox.addEventListener('change', () => {
+          state[checkbox.id] = checkbox.checked;
+        });
+      });
+    }
+
+    function renderFinish(form) {
+      form.innerHTML = `
+        <h2 class="text-lg font-semibold mb-2">Résumé de votre demande</h2>
+        <pre class="bg-gray-100 p-4 rounded text-sm">${JSON.stringify(state, null, 2)}</pre>
+        <p class="text-sm text-gray-600 mt-2">Merci d'avoir soumis votre demande. Nous vous contacterons sous peu.</p>
+      `;
+    }
+  </script>
+</body>
+</html>
