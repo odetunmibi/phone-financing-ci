@@ -9,7 +9,21 @@
 </head>
 <body class="bg-gray-50 min-h-screen flex flex-col items-center">
   <main class="w-full max-w-2xl p-6">
-    <h1 class="text-2xl font-bold text-center mb-6">Pré-qualification pour votre téléphone</h1>
+    <h1 class="text-2xl font-bold text-center mb-2">Pré‑qualification pour votre téléphone</h1>
+    <p class="text-center text-gray-700 mb-4">
+      Découvrez si vous êtes éligible à un paiement mensuel pour un nouveau téléphone sans avancer la totalité du prix. C’est rapide, gratuit et sans engagement.
+    </p>
+    <div class="bg-white rounded p-4 shadow mb-6">
+      <h2 class="text-lg font-semibold mb-2">Appareils populaires disponibles</h2>
+      <ul class="list-disc list-inside text-sm text-gray-700">
+        <li>Smartphones Android (Tecno, Infinix, Samsung A‑series)</li>
+        <li>iPhone reconditionnés et certifiés</li>
+        <li>Tablettes pour les professionnels</li>
+      </ul>
+      <p class="text-xs text-gray-500 mt-2">
+        Les modèles exacts et les tarifs mensuels seront confirmés après votre pré‑qualification. Les paiements mensuels typiques se situent entre 15 000 et 50 000&nbsp;CFA selon l’appareil et votre profil.
+      </p>
+    </div>
     <div id="stepper" class="flex items-center justify-between mb-8">
       <!-- Step indicators will be injected here -->
     </div>
@@ -100,8 +114,12 @@
         renderStepper();
         renderCurrentStep();
       } else {
-        // Submit: show summary or send data
-        alert('Merci ! Votre demande de pré-qualification a été soumise.');
+        // Submit: send the data to our backend and then show the summary step
+        submitLead(state).finally(() => {
+          currentStep++;
+          renderStepper();
+          renderCurrentStep();
+        });
       }
     }
 
@@ -279,6 +297,33 @@
         <pre class="bg-gray-100 p-4 rounded text-sm">${JSON.stringify(state, null, 2)}</pre>
         <p class="text-sm text-gray-600 mt-2">Merci d'avoir soumis votre demande. Nous vous contacterons sous peu.</p>
       `;
+    }
+
+    // Endpoint for saving leads. Replace this with the URL of your Google Apps Script web app.
+    const scriptUrl = 'SCRIPT_URL_HERE';
+
+    /**
+     * Send the pre-qualification payload to a backend endpoint.
+     *
+     * This function posts the collected form data to a Google Apps Script or other backend. It
+     * does not prevent the UI from advancing; it simply attempts the submission in the
+     * background and logs any errors to the console.
+     *
+     * @param {Object} payload The state object representing the applicant's responses.
+     * @returns {Promise<any>} A promise resolving to the parsed response or null on failure.
+     */
+    async function submitLead(payload) {
+      try {
+        const res = await fetch(scriptUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+        return await res.json();
+      } catch (err) {
+        console.error('Submission error:', err);
+        return null;
+      }
     }
   </script>
 </body>
